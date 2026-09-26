@@ -1,0 +1,19 @@
+{
+  "name": "multi-vendor-ecommerce",
+  "version": "1.0.0",
+  "description": "Multi-Vendor E-Commerce Platform",
+  "scripts": {
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:auth": "cd backend/auth-service && npm start",
+    "dev:vendor": "cd backend/vendor-service && npm start",
+    "dev:product": "cd backend/product-service && npm start",
+    "dev:cart": "cd backend/cart-service && npm start",
+    "dev:order": "cd backend/order-service && npm start",
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:auth\" \"npm run dev:vendor\" \"npm run dev:product\" \"npm run dev:cart\" \"npm run dev:order\""
+  },
+  "author": "Ajas",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^10.0.5"
+  }
+}
