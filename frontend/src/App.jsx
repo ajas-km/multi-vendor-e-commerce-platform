@@ -11,6 +11,11 @@ import VendorDashboard from './pages/vendor/Dashboard';
 import VendorProducts from './pages/vendor/Products';
 import VendorOrders from './pages/vendor/Orders';
 import VendorLayout from './layouts/VendorLayout';
+import AdminLayout from './layouts/AdminLayout';
+import AdminDashboard from './pages/admin/Dashboard';
+import AdminAds from './pages/admin/Ads';
+import AdminDiscounts from './pages/admin/Discounts';
+import AdminReviews from './pages/admin/Reviews';
 
 function App() {
   return (
@@ -24,6 +29,14 @@ function App() {
           <Route path="/vendor/dashboard" element={<VendorDashboard />} />
           <Route path="/vendor/products" element={<VendorProducts />} />
           <Route path="/vendor/orders" element={<VendorOrders />} />
+        </Route>
+
+        {/* Admin Routes */}
+        <Route element={<AdminLayout />}>
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/ads" element={<AdminAds />} />
+          <Route path="/admin/discounts" element={<AdminDiscounts />} />
+          <Route path="/admin/reviews" element={<AdminReviews />} />
         </Route>
 
         {/* Customer Routes with Layout */}

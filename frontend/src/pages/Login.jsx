@@ -14,7 +14,9 @@ const Login = () => {
     setError('');
     try {
       const userData = await login(email, password);
-      if (userData.role === 'vendor' || userData.role === 'admin') {
+      if (userData.role === 'admin') {
+        navigate('/admin/dashboard');
+      } else if (userData.role === 'vendor') {
         navigate('/vendor/dashboard');
       } else {
         navigate('/products');

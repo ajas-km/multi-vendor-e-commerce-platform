@@ -12,13 +12,37 @@ const Products = () => {
   const [search, setSearch] = useState(searchParams.get('search') || '');
   const [category, setCategory] = useState(searchParams.get('category') || '');
   const [sort, setSort] = useState(searchParams.get('sort') || 'newest');
+  const [showSavedOnly, setShowSavedOnly] = useState(searchParams.get('saved') === 'true');
+  const [heroAds, setHeroAds] = useState([]);
+  const [currentAdIndex, setCurrentAdIndex] = useState(0);
   const { addToCart } = useContext(CartContext);
+
+  const [savedProducts, setSavedProducts] = useState(() => {
+    try {
+      const saved = localStorage.getItem('wishlist');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const toggleFavorite = (productId) => {
+    let newSaved;
+    if (savedProducts.includes(productId)) {
+      newSaved = savedProducts.filter(id => id !== productId);
+    } else {
+      newSaved = [...savedProducts, productId];
+    }
+    setSavedProducts(newSaved);
+    localStorage.setItem('wishlist', JSON.stringify(newSaved));
+  };
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     if (params.has('search')) setSearch(params.get('search'));
     if (params.has('category')) setCategory(params.get('category'));
     if (params.has('sort')) setSort(params.get('sort'));
+    setShowSavedOnly(params.get('saved') === 'true');
   }, [location.search]);
 
   useEffect(() => {
@@ -38,45 +62,66 @@ const Products = () => {
     return () => clearTimeout(timer);
   }, [search, category, sort]);
 
+  // Fetch active hero ads
+  useEffect(() => {
+    const fetchHeroAds = async () => {
+      try {
+        const { data } = await axios.get('http://localhost:5003/api/products/public/ads');
+        if (data && data.length > 0) setHeroAds(data);
+      } catch (err) { /* silent fail */ }
+    };
+    fetchHeroAds();
+  }, []);
+
+  // Auto-slide ads
+  useEffect(() => {
+    if (heroAds.length <= 1) return;
+    const interval = setInterval(() => {
+      setCurrentAdIndex((prev) => (prev + 1) % heroAds.length);
+    }, 4000); // Slide every 4 seconds
+    return () => clearInterval(interval);
+  }, [heroAds.length]);
+
   const categories = ['Electronics', 'Clothing', 'Home & Kitchen', 'Books', 'Beauty'];
+
+  const displayedProducts = showSavedOnly 
+    ? products.filter(p => savedProducts.includes(p._id))
+    : products;
 
   return (
     <div className="animate-fade-in">
-      {/* Hero Banner */}
-      <div className="bg-[#fcfcfc] border-b border-gray-100 relative overflow-hidden">
-        {/* Full-width Hero Decorative Elements */}
-        <div className="absolute right-0 top-0 hidden lg:block w-1/2 h-full pointer-events-none opacity-[0.07] bg-gradient-to-l from-[#ff4e00] to-transparent"></div>
-        <div className="absolute right-0 top-0 hidden lg:block w-1/3 h-full pointer-events-none opacity-[0.05] bg-gradient-to-bl from-[#ff4e00] via-transparent to-transparent"></div>
+      {/* Hero Ad Slider */}
+      {heroAds.length > 0 && (
+        <div className="relative w-full h-[250px] md:h-[400px] overflow-hidden bg-gray-100 group">
+          {heroAds.map((ad, index) => (
+            <div 
+              key={ad._id}
+              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${index === currentAdIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
+            >
+              {ad.linkUrl ? (
+                <a href={ad.linkUrl} target="_blank" rel="noopener noreferrer" className="block w-full h-full">
+                  <img src={ad.imageUrl} alt="Advertisement" className="w-full h-full object-cover" />
+                </a>
+              ) : (
+                <img src={ad.imageUrl} alt="Advertisement" className="w-full h-full object-cover" />
+              )}
+            </div>
+          ))}
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 relative z-10">
-          <div className="max-w-2xl relative z-10">
-            <span className="text-[#ff4e00] text-xs font-bold uppercase tracking-widest mb-4 block">Trending Now</span>
-            <h1 className="text-5xl md:text-6xl font-extrabold text-gray-900 mb-6 leading-[1.1] tracking-tight">
-              Discover Products<br/>You'll Love
-            </h1>
-            <p className="text-gray-500 text-lg mb-10 max-w-md leading-relaxed">Shop the latest trending products curated for modern lifestyles.</p>
-            
-            <div className="flex items-center gap-4">
-              <button className="bg-[#ff4e00] text-white px-8 py-3.5 rounded-lg text-sm font-bold hover:bg-[#e64600] transition-colors flex items-center gap-2 shadow-lg shadow-orange-500/20">
-                Shop Now <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-              </button>
-              <button className="bg-white text-gray-900 border border-gray-200 px-8 py-3.5 rounded-lg text-sm font-bold hover:bg-gray-50 transition-colors shadow-sm">
-                Explore Collection
-              </button>
+          {/* Dots Indicator */}
+          {heroAds.length > 1 && (
+            <div className="absolute bottom-4 left-0 right-0 z-20 flex justify-center gap-2">
+              {heroAds.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentAdIndex(index)}
+                  className={`w-2.5 h-2.5 rounded-full transition-colors ${index === currentAdIndex ? 'bg-[#ff4e00]' : 'bg-white/50 hover:bg-white/80'}`}
+                />
+              ))}
             </div>
-            
-            <div className="mt-12 flex items-center gap-4">
-              <div className="flex -space-x-3">
-                <img className="w-8 h-8 rounded-full border-2 border-white object-cover" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80" alt="" />
-                <img className="w-8 h-8 rounded-full border-2 border-white object-cover" src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=100&q=80" alt="" />
-                <img className="w-8 h-8 rounded-full border-2 border-white object-cover" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=100&q=80" alt="" />
-                <img className="w-8 h-8 rounded-full border-2 border-white object-cover" src="https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=100&q=80" alt="" />
-              </div>
-              <p className="text-xs text-gray-500 font-medium">Loved by 50,000+ customers worldwide</p>
-            </div>
-          </div>
+          )}
         </div>
-      </div>
+      )}
       
       {/* Feature Strip */}
       <div className="border-b border-gray-100 bg-white">
@@ -146,7 +191,7 @@ const Products = () => {
           {/* Product Grid */}
           <div className="flex-1">
             <div className="flex justify-between items-center mb-6">
-              <p className="text-sm text-gray-500">{loading ? '...' : `${products.length} products found`}</p>
+              <p className="text-sm text-gray-500">{loading ? '...' : showSavedOnly ? `${displayedProducts.length} saved products` : `${products.length} products found`}</p>
             </div>
 
             {loading ? (
@@ -160,24 +205,29 @@ const Products = () => {
                   </div>
                 ))}
               </div>
-            ) : products.length === 0 ? (
+            ) : displayedProducts.length === 0 ? (
               <div className="text-center py-20 bg-white rounded-3xl shadow-sm border border-gray-100">
                 <div className="w-20 h-20 bg-orange-50 rounded-full flex items-center justify-center mx-auto mb-4">
                   <svg className="w-10 h-10 text-[#ff4e00]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
                 </div>
-                <h3 className="text-lg font-bold text-gray-900">No products found</h3>
-                <p className="mt-1 text-gray-500 text-sm">Try adjusting your search or filters.</p>
-                <button onClick={() => {setSearch(''); setCategory('');}} className="mt-4 px-5 py-2 text-sm font-bold text-white bg-[#ff4e00] rounded-full hover:bg-[#e64600] shadow-md shadow-orange-500/20 transition-colors">Clear all filters</button>
+                <h3 className="text-lg font-bold text-gray-900">{showSavedOnly ? "No saved products" : "No products found"}</h3>
+                <p className="mt-1 text-gray-500 text-sm">{showSavedOnly ? "You haven't saved any products yet." : "Try adjusting your search or filters."}</p>
+                {!showSavedOnly && (
+                  <button onClick={() => {setSearch(''); setCategory('');}} className="mt-4 px-5 py-2 text-sm font-bold text-white bg-[#ff4e00] rounded-full hover:bg-[#e64600] shadow-md shadow-orange-500/20 transition-colors">Clear all filters</button>
+                )}
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {products.map((product) => (
+                {displayedProducts.map((product) => (
                   <div key={product._id} className="group bg-white rounded-2xl border border-gray-100 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 overflow-hidden flex flex-col relative">
                     {/* Discount Badge */}
                     <span className="absolute top-3 left-3 px-2 py-1 rounded bg-[#ff4e00] text-white text-[10px] font-bold z-10 shadow-sm">-15%</span>
                     {/* Heart Icon */}
-                    <button className="absolute top-3 right-3 p-1.5 rounded-full bg-white text-gray-400 hover:text-red-500 z-10 shadow-sm transition-colors">
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                    <button 
+                      onClick={(e) => { e.preventDefault(); toggleFavorite(product._id); }}
+                      className={`absolute top-3 right-3 p-1.5 rounded-full bg-white z-10 shadow-sm transition-colors ${savedProducts.includes(product._id) ? 'text-red-500' : 'text-gray-400 hover:text-red-500'}`}
+                    >
+                      <svg className="w-4 h-4" fill={savedProducts.includes(product._id) ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
                     </button>
 
                     <Link to={`/products/${product._id}`} className="relative h-56 bg-[#f8f8f8] flex items-center justify-center overflow-hidden p-4">

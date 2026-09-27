@@ -60,8 +60,18 @@ const getProductById = async (req, res) => {
 // @access  Private/Vendor
 const createProduct = async (req, res) => {
   try {
-    const vendor = await Vendor.findOne({ userId: req.user._id });
-    if (!vendor) return res.status(404).json({ message: 'Vendor profile not found. Please set up your store first.' });
+    let vendor = await Vendor.findOne({ userId: req.user._id });
+    if (!vendor) {
+      if (req.user.role === 'vendor') {
+        vendor = await Vendor.create({
+          userId: req.user._id,
+          storeName: `${req.user.name || 'Vendor'}'s Store ${Date.now().toString().slice(-4)}`,
+          description: 'Welcome to my store!'
+        });
+      } else {
+        return res.status(404).json({ message: 'Vendor profile not found. Please set up your store first.' });
+      }
+    }
 
     const { name, description, price, category, stock } = req.body;
 
@@ -87,8 +97,55 @@ const createProduct = async (req, res) => {
   }
 };
 
+// @desc    Create new review
+// @route   POST /api/products/:id/reviews
+// @access  Private
+const addReview = async (req, res) => {
+  try {
+    const { rating, comment } = req.body;
+    const product = await Product.findById(req.params.id);
+
+    if (product) {
+      const alreadyReviewed = product.reviews.find(
+        (r) => r.user.toString() === req.user._id.toString()
+      );
+
+      if (alreadyReviewed) {
+        return res.status(400).json({ message: 'Product already reviewed' });
+      }
+
+      let photoUrl = '';
+      if (req.file) {
+        photoUrl = `http://localhost:5003/uploads/${req.file.filename}`;
+      }
+
+      const review = {
+        name: req.user.name,
+        rating: Number(rating),
+        comment,
+        photo: photoUrl,
+        user: req.user._id,
+      };
+
+      product.reviews.push(review);
+      product.ratings.count = product.reviews.length;
+      product.ratings.average =
+        product.reviews.reduce((acc, item) => item.rating + acc, 0) /
+        product.reviews.length;
+
+      await product.save();
+      res.status(201).json({ message: 'Review added' });
+    } else {
+      res.status(404).json({ message: 'Product not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   getProducts,
   getProductById,
-  createProduct
+  createProduct,
+  addReview
 };

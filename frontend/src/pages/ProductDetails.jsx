@@ -121,7 +121,7 @@ const ProductDetails = () => {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 mt-auto">
-            <div className="flex items-center border border-gray-200 rounded-xl bg-white px-2 py-1 h-12">
+            <div className="flex items-center border border-gray-200 rounded-xl bg-white px-2 py-1 h-12 w-fit">
               <button 
                 onClick={() => setQuantity(q => Math.max(1, q - 1))}
                 className="text-gray-400 hover:text-gray-900 w-8 h-8 flex items-center justify-center focus:outline-none transition-colors"
@@ -137,16 +137,115 @@ const ProductDetails = () => {
                 +
               </button>
             </div>
-            <button 
-              onClick={() => {
-                addToCart(product._id, quantity);
-                navigate('/cart');
+            <div className="flex flex-1 gap-3">
+              <button 
+                onClick={() => {
+                  addToCart(product._id, quantity);
+                }}
+                disabled={product.stock === 0}
+                className={`flex-1 h-12 rounded-xl font-bold transition-all border-2 ${product.stock === 0 ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed' : 'bg-white border-[#ff4e00] text-[#ff4e00] hover:bg-orange-50'}`}
+              >
+                Add to Cart
+              </button>
+              <button 
+                onClick={() => {
+                  addToCart(product._id, quantity);
+                  navigate('/checkout');
+                }}
+                disabled={product.stock === 0}
+                className={`flex-1 h-12 rounded-xl font-bold text-white transition-all shadow-lg ${product.stock === 0 ? 'bg-gray-300 shadow-none cursor-not-allowed text-gray-500' : 'bg-[#ff4e00] hover:bg-[#e64600] shadow-orange-500/20 transform hover:-translate-y-0.5'}`}
+              >
+                Buy Now
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Reviews Section */}
+      <div className="mt-12 bg-white rounded-3xl p-6 md:p-10 border border-gray-100 shadow-sm">
+        <h2 className="text-2xl font-black text-gray-900 mb-8">Customer Reviews</h2>
+        
+        <div className="flex flex-col md:flex-row gap-12">
+          {/* Review Form */}
+          <div className="w-full md:w-1/3">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">Write a Review</h3>
+            <form 
+              onSubmit={async (e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                try {
+                  await axios.post(`http://localhost:5003/api/products/${product._id}/reviews`, formData, {
+                    withCredentials: true,
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                  });
+                  window.location.reload();
+                } catch (err) {
+                  alert(err.response?.data?.message || 'Failed to submit review. Are you logged in?');
+                }
               }}
-              disabled={product.stock === 0}
-              className={`flex-1 h-12 rounded-xl font-bold text-white transition-all shadow-lg ${product.stock === 0 ? 'bg-gray-300 shadow-none cursor-not-allowed text-gray-500' : 'bg-[#ff4e00] hover:bg-[#e64600] shadow-orange-500/20 transform hover:-translate-y-0.5'}`}
+              className="space-y-4"
             >
-              Add to Cart
-            </button>
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-1">Rating (1-5)</label>
+                <select name="rating" required className="w-full border-gray-200 rounded-xl focus:border-[#ff4e00] focus:ring focus:ring-orange-200 focus:ring-opacity-50">
+                  <option value="5">5 - Excellent</option>
+                  <option value="4">4 - Very Good</option>
+                  <option value="3">3 - Good</option>
+                  <option value="2">2 - Fair</option>
+                  <option value="1">1 - Poor</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-1">Review</label>
+                <textarea name="comment" required rows="4" className="w-full border-gray-200 rounded-xl focus:border-[#ff4e00] focus:ring focus:ring-orange-200 focus:ring-opacity-50" placeholder="What did you like or dislike?"></textarea>
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-1">Photo (optional)</label>
+                <input type="file" name="photo" accept="image/*" className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-bold file:bg-orange-50 file:text-[#ff4e00] hover:file:bg-orange-100" />
+              </div>
+              <button type="submit" className="w-full bg-[#ff4e00] text-white py-3 rounded-xl font-bold hover:bg-[#e64600] transition-colors shadow-md shadow-orange-500/20">
+                Submit Review
+              </button>
+            </form>
+          </div>
+
+          {/* Reviews List */}
+          <div className="w-full md:w-2/3">
+            {product.reviews && product.reviews.length > 0 ? (
+              <div className="space-y-6">
+                {product.reviews.map((review, index) => (
+                  <div key={index} className="border-b border-gray-100 pb-6 last:border-0 last:pb-0">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center font-bold text-gray-600 text-xs">
+                          {review.name.charAt(0).toUpperCase()}
+                        </div>
+                        <span className="font-bold text-gray-900">{review.name}</span>
+                      </div>
+                      <span className="text-xs text-gray-400">
+                        {new Date(review.createdAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <div className="flex text-yellow-400 mb-2">
+                      {[...Array(5)].map((_, i) => (
+                        <svg key={i} className={`w-4 h-4 ${i < review.rating ? 'fill-current' : 'text-gray-300'}`} viewBox="0 0 20 20">
+                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                      ))}
+                    </div>
+                    <p className="text-gray-600 text-sm">{review.comment}</p>
+                    {review.photo && (
+                      <img src={review.photo} alt="Review" className="mt-3 h-24 w-24 object-cover rounded-lg border border-gray-200" />
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 bg-gray-50 rounded-2xl border border-gray-100">
+                <p className="text-gray-500 font-medium">No reviews yet. Be the first to review this product!</p>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -155,3 +254,4 @@ const ProductDetails = () => {
 };
 
 export default ProductDetails;
+
