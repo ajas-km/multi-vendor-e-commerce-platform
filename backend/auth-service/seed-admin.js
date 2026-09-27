@@ -1,7 +1,8 @@
 const { User, connectDB } = require('../shared/index.js');
 const bcrypt = require('bcryptjs');
+require('dotenv').config();
 
-const MONGO_URI = 'mongodb+srv://ecommerce-platform:567%40Ajas@cluster0.3htaf12.mongodb.net/multivendor?appName=Cluster0';
+const MONGO_URI = process.env.MONGO_URI;
 
 const seedAdmin = async () => {
   try {
