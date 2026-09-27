@@ -25,31 +25,27 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-900 via-purple-900 to-black relative overflow-hidden">
-      {/* Decorative blurred blobs */}
-      <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-purple-600 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob"></div>
-      <div className="absolute top-[20%] right-[-10%] w-96 h-96 bg-indigo-600 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob animation-delay-2000"></div>
-      <div className="absolute bottom-[-20%] left-[20%] w-96 h-96 bg-pink-600 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob animation-delay-4000"></div>
-
-      <div className="relative w-full max-w-md p-8 bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl shadow-2xl z-10">
+    <div className="min-h-screen flex items-center justify-center bg-[#fcfcfc] relative overflow-hidden font-sans">
+      <div className="relative w-full max-w-md p-8 bg-white border border-gray-100 rounded-3xl shadow-xl z-10">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">Welcome Back</h1>
-          <p className="text-gray-300 mt-2">Sign in to your account</p>
+          <Link to="/products" className="inline-block text-2xl font-bold text-gray-900 tracking-tight mb-6">NovaTrend</Link>
+          <h1 className="text-3xl font-extrabold text-gray-900">Welcome Back</h1>
+          <p className="text-gray-500 mt-2">Sign in to your account</p>
         </div>
 
         {error && (
-          <div className="bg-red-500/20 border border-red-500/50 text-red-200 p-3 rounded-lg text-sm text-center mb-6">
+          <div className="bg-red-50 border border-red-100 text-red-600 p-3 rounded-lg text-sm text-center mb-6">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Email Address</label>
+            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Email Address</label>
             <input
               type="email"
               required
-              className="w-full px-4 py-3 rounded-xl bg-black/30 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+              className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#ff4e00] focus:border-transparent transition-all"
               placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -57,30 +53,30 @@ const Login = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Password</label>
+            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Password</label>
             <input
               type="password"
               required
-              className="w-full px-4 py-3 rounded-xl bg-black/30 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+              className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#ff4e00] focus:border-transparent transition-all"
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
 
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mt-2">
             <div className="flex items-center">
               <input
                 id="remember-me"
                 type="checkbox"
-                className="h-4 w-4 text-purple-500 focus:ring-purple-500 border-gray-600 rounded bg-gray-800"
+                className="h-4 w-4 text-[#ff4e00] focus:ring-[#ff4e00] border-gray-300 rounded cursor-pointer"
               />
-              <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-300">
+              <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-600 cursor-pointer">
                 Remember me
               </label>
             </div>
             <div className="text-sm">
-              <a href="#" className="font-medium text-purple-400 hover:text-purple-300 transition-colors">
+              <a href="#" className="font-semibold text-[#ff4e00] hover:text-[#e64600] transition-colors">
                 Forgot password?
               </a>
             </div>
@@ -88,15 +84,15 @@ const Login = () => {
 
           <button
             type="submit"
-            className="w-full py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-bold text-white bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 focus:ring-offset-gray-900 transform hover:-translate-y-1 transition-all duration-200"
+            className="w-full py-3.5 px-4 rounded-xl shadow-lg shadow-orange-500/20 text-sm font-bold text-white bg-[#ff4e00] hover:bg-[#e64600] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#ff4e00] transform hover:-translate-y-0.5 transition-all duration-200 mt-2"
           >
             Sign in
           </button>
         </form>
 
-        <p className="mt-8 text-center text-sm text-gray-400">
+        <p className="mt-8 text-center text-sm text-gray-500">
           Don't have an account?{' '}
-          <Link to="/register" className="font-medium text-purple-400 hover:text-purple-300 transition-colors">
+          <Link to="/register" className="font-bold text-[#ff4e00] hover:text-[#e64600] transition-colors">
             Sign up now
           </Link>
         </p>
